@@ -44,11 +44,23 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Dodo Payments qaytargan butun javobni tekshirish uchun ekranga chiqaramiz
-    return res.status(200).json({ 
-      error: `Dodo Javobi: ${JSON.stringify(data)}` 
-    });
+    if (!response.ok) {
+      return res.status(400).json({ error: data.message || "To'lovni yaratishda xatolik" });
+    }
 
+    // Dodo Payments bergan payment_link yoki client_secret orqali to'g'ri checkout havolasini yig'amiz
+    let checkoutUrl = data.payment_link || data.checkout_url;
+
+    if (!checkoutUrl && data.payment_id && data.client_secret) {
+      // Dodo Payments rasmiy checkout sahifasi formatiga moslaymiz
+      checkoutUrl = `https://checkout.dodopayments.com/buy/${data.payment_id}?client_secret=${data.client_secret}`;
+    }
+
+    if (checkoutUrl) {
+      return res.status(200).json({ checkout_url: checkoutUrl });
+    } else {
+      return res.status(400).json({ error: "To'lov havolasini shakllantirib bo'lmadi" });
+    }
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
