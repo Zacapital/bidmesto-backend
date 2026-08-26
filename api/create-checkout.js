@@ -44,17 +44,11 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      // Dodo Payments qaytargan aniq xatoni to'g'ridan-to'g'ri frontga chiqaramiz
-      const errorMsg = data.message || data.error || (typeof data === 'string' ? data : JSON.stringify(data)) || "Dodo Payments xatoligi";
-      return res.status(400).json({ error: errorMsg });
-    }
+    // Dodo Payments qaytargan butun javobni tekshirish uchun ekranga chiqaramiz
+    return res.status(200).json({ 
+      error: `Dodo Javobi: ${JSON.stringify(data)}` 
+    });
 
-    if (data.payment_link || data.checkout_url) {
-      return res.status(200).json({ checkout_url: data.payment_link || data.checkout_url });
-    } else {
-      return res.status(400).json({ error: "To'lov havolasi topilmadi" });
-    }
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
