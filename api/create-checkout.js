@@ -23,6 +23,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "API Key kiritilmagan" });
     }
 
+    // Dodo Payments API orqali checkout session / payment yaratish
     const response = await fetch('https://live.dodopayments.com/payments', {
       method: 'POST',
       headers: {
@@ -48,18 +49,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: data.message || "To'lovni yaratishda xatolik" });
     }
 
-    // Dodo Payments bergan payment_link yoki client_secret orqali to'g'ri checkout havolasini yig'amiz
-    let checkoutUrl = data.payment_link || data.checkout_url;
-
-    if (!checkoutUrl && data.payment_id && data.client_secret) {
-      // Dodo Payments rasmiy checkout sahifasi formatiga moslaymiz
-      checkoutUrl = `https://checkout.dodopayments.com/buy/${data.payment_id}?client_secret=${data.client_secret}`;
-    }
+    // Dodo Payments javobidagi barcha mumkin bo'lgan havola nomlarini tekshiramiz
+    const checkoutUrl = data.payment_link || data.checkout_url || data.url;
 
     if (checkoutUrl) {
       return res.status(200).json({ checkout_url: checkoutUrl });
     } else {
-      return res.status(400).json({ error: "To'lov havolasini shakllantirib bo'lmadi" });
+      // Agar API to'g'ridan-to'g'ri link bermasa, payment_id va checkout URL strukturasi
+      // Dodo Payments'ning rasmiy havolasi quyidagicha tuziladi:
+      if (data.payment_id) {
+        return res.status(200).json({ 
+          checkout_url: `https://checkout.dodopayments.com/${data.payment_id}` 
+        });
+      }
+      return res.status(400).json({ error: "To'lov havolasini olib bo'lmadi" });
     }
   } catch (err) {
     return res.status(500).json({ error: err.message });
