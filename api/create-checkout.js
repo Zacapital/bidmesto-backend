@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS sarlavhalari
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -18,14 +17,12 @@ export default async function handler(req, res) {
 
   try {
     const { amount, url, category } = req.body || {};
-
     const apiKey = process.env.DODO_PAYMENTS_API_KEY;
 
     if (!apiKey) {
       return res.status(500).json({ error: "API Key kiritilmagan" });
     }
 
-    // Dodo Payments API'ga to'g'ridan-to'g'ri so'rov
     const response = await fetch('https://live.dodopayments.com/payments', {
       method: 'POST',
       headers: {
@@ -47,10 +44,16 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
+    if (!response.ok) {
+      // Dodo Payments qaytargan aniq xatoni to'g'ridan-to'g'ri frontga chiqaramiz
+      const errorMsg = data.message || data.error || (typeof data === 'string' ? data : JSON.stringify(data)) || "Dodo Payments xatoligi";
+      return res.status(400).json({ error: errorMsg });
+    }
+
     if (data.payment_link || data.checkout_url) {
       return res.status(200).json({ checkout_url: data.payment_link || data.checkout_url });
     } else {
-      return res.status(400).json({ error: data.message || "To'lov linkini yaratib bo'lmadi" });
+      return res.status(400).json({ error: "To'lov havolasi topilmadi" });
     }
   } catch (err) {
     return res.status(500).json({ error: err.message });
