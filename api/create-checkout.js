@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         billing: { city: "NY", country: "US", state: "NY", street: "123 St", zip_code: "10001" },
         customer: { email: "customer@bidmesto.lol", name: "Trader User" },
         product_cart: [{
-          product_id: 'pdt_0NmEgwKt32IXGVf5iYXFK',
+          product_id: 'pdt_0NmFjUmSlmrbnp1HL4E9B',
           quantity: 1,
           amount: Math.round((amount || 2) * 100)
         }],
